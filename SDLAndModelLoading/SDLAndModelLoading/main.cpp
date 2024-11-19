@@ -13,6 +13,10 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+//SDL
+#include <SDL.h>
+//#include <SDL_ttf.h>
+
 //LEARNOPENGL
 #include <learnopengl/shader_m.h>
 #include <learnopengl/model.h>
@@ -61,14 +65,24 @@ float deltaTime = 0.0f;
 //Last value of time change
 float lastFrame = 0.0f;
 
-int main()
+int main(int argc, char* argv[])
 {
     //Initialisation of GLFW
     glfwInit();
     //Initialisation of 'GLFWwindow' object
     windowWidth = 1280;
     windowHeight = 720;
-    GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "Lab5", NULL, NULL);
+    
+    SDL_Init(SDL_INIT_EVERYTHING);
+    SDL_Window* window = SDL_CreateWindow("window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_SHOWN);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
+
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+    SDL_RenderClear(renderer);
+    SDL_RenderPresent(renderer);
+    SDL_Delay(3000);
+
+    /*GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "Lab5", NULL, NULL);
 
     //Checks if window has been successfully instantiated
     if (window == NULL)
@@ -82,7 +96,7 @@ int main()
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     //Binds OpenGL to window
-    glfwMakeContextCurrent(window);
+    glfwMakeContextCurrent(window);*/
 
     //Initialisation of GLAD
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -100,10 +114,10 @@ int main()
     glViewport(0, 0, 1280, 720);
 
     //Sets the framebuffer_size_callback() function as the callback for the window resizing event
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    /*glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     //Sets the mouse_callback() function as the callback for the mouse movement event
-    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);*/
 
     //Model matrix
     mat4 model = mat4(1.0f);
@@ -118,7 +132,8 @@ int main()
     mat4 projection = perspective(radians(45.0f), (float)windowWidth / (float)windowHeight, 0.1f, 100.0f);
 
     //Render loop
-    while (glfwWindowShouldClose(window) == false)
+    //while (glfwWindowShouldClose(window) == false)
+    while (true);
     {
         //Time
         float currentFrame = static_cast<float>(glfwGetTime());
@@ -126,7 +141,7 @@ int main()
         lastFrame = currentFrame;
 
         //Input
-        ProcessUserInput(window); //Takes user input
+        //ProcessUserInput(window); //Takes user input
 
         //Rendering
         glClearColor(0.25f, 0.0f, 1.0f, 1.0f); //Colour to display on cleared window
@@ -144,7 +159,7 @@ int main()
         Rock.Draw(Shaders);
 
         //Refreshing
-        glfwSwapBuffers(window); //Swaps the colour buffer
+        //glfwSwapBuffers(window); //Swaps the colour buffer
         glfwPollEvents(); //Queries all GLFW events
     }
 
