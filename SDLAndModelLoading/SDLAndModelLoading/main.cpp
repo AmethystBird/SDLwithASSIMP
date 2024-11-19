@@ -68,19 +68,47 @@ float lastFrame = 0.0f;
 int main(int argc, char* argv[])
 {
     //Initialisation of GLFW
-    glfwInit();
+    //glfwInit();
     //Initialisation of 'GLFWwindow' object
     windowWidth = 1280;
     windowHeight = 720;
     
-    SDL_Init(SDL_INIT_EVERYTHING);
-    SDL_Window* window = SDL_CreateWindow("window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_SHOWN);
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
+    if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
+    {
+        cout << "SDL failed to initialise.\n";
+        return -1;
+    }
 
-    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+    /*SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);*/
+
+    SDL_Window* window = SDL_CreateWindow("window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+    if (!window)
+    {
+        cout << "SDL window failed to initialise.\n";
+        return -1;
+    }
+
+    SDL_GLContext context = SDL_GL_CreateContext(window);
+    if (context == NULL)
+    {
+        cout << "SDL context failed to initialise.\n" << SDL_GetError() << endl;
+        return -1;
+    }
+
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
+    if (!renderer)
+    {
+        cout << "SDL renderer failed to initialise.\n";
+        return -1;
+    }
+
+    /*SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
     SDL_RenderClear(renderer);
-    SDL_RenderPresent(renderer);
-    SDL_Delay(3000);
+    SDL_RenderPresent(renderer);*/
 
     /*GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "Lab5", NULL, NULL);
 
@@ -99,9 +127,10 @@ int main(int argc, char* argv[])
     glfwMakeContextCurrent(window);*/
 
     //Initialisation of GLAD
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    //if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
     {
-        cout << "GLAD failed to initialise\n";
+        cout << "GLAD failed to initialise.\n";
         return -1;
     }
 
@@ -133,38 +162,58 @@ int main(int argc, char* argv[])
 
     //Render loop
     //while (glfwWindowShouldClose(window) == false)
-    while (true);
+
+    bool quit = false;
+    SDL_Event* QuitEvent = new SDL_Event();
+
+    while (quit == false)
     {
-        //Time
-        float currentFrame = static_cast<float>(glfwGetTime());
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
+        while (SDL_PollEvent(QuitEvent) != 0);
+        {
+            //Time
+            /*float currentFrame = static_cast<float>(glfwGetTime());
+            deltaTime = currentFrame - lastFrame;
+            lastFrame = currentFrame;*/
 
-        //Input
-        //ProcessUserInput(window); //Takes user input
+            //Input
+            //ProcessUserInput(window); //Takes user input
 
-        //Rendering
-        glClearColor(0.25f, 0.0f, 1.0f, 1.0f); //Colour to display on cleared window
-        glClear(GL_COLOR_BUFFER_BIT); //Clears the colour buffer
-        glClear(GL_DEPTH_BUFFER_BIT); //Might need
+            //Rendering
+            SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+            SDL_RenderClear(renderer);
 
-        glEnable(GL_CULL_FACE); //Discards all back-facing triangles
+            //Rendering (old)
+            /*glClearColor(0.25f, 0.0f, 1.0f, 1.0f); //Colour to display on cleared window
+            glClear(GL_COLOR_BUFFER_BIT); //Clears the colour buffer
+            glClear(GL_DEPTH_BUFFER_BIT);*/ //Might need
 
-        //Transformations
-        mat4 view = lookAt(cameraPosition, cameraPosition + cameraFront, cameraUp); //Sets the position of the viewer, the movement direction in relation to it & the world up direction
-        mat4 mvp = projection * view * model;
-        Shaders.setMat4("mvpIn", mvp); //Setting of uniform with Shader class
+            glEnable(GL_CULL_FACE); //Discards all back-facing triangles
 
-        //Drawing
-        Rock.Draw(Shaders);
+            //Transformations
+            mat4 view = lookAt(cameraPosition, cameraPosition + cameraFront, cameraUp); //Sets the position of the viewer, the movement direction in relation to it & the world up direction
+            mat4 mvp = projection * view * model;
+            Shaders.setMat4("mvpIn", mvp); //Setting of uniform with Shader class
 
-        //Refreshing
-        //glfwSwapBuffers(window); //Swaps the colour buffer
-        glfwPollEvents(); //Queries all GLFW events
+            //Drawing
+            Rock.Draw(Shaders);
+
+            //Refreshing
+            //glfwSwapBuffers(window); //Swaps the colour buffer
+            //glfwPollEvents(); //Queries all GLFW events
+
+            SDL_RenderPresent(renderer);
+
+            if (QuitEvent->type == SDL_QUIT)
+            {
+                quit = true;
+            }
+        }
     }
 
+    SDL_DestroyWindow(window);
+
     //Safely terminates GLFW
-    glfwTerminate();
+    //glfwTerminate();
 
     return 0;
 }
