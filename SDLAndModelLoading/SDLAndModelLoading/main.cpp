@@ -164,28 +164,30 @@ int main(int argc, char* argv[])
     //while (glfwWindowShouldClose(window) == false)
 
     bool quit = false;
-    SDL_Event* QuitEvent = new SDL_Event();
+    SDL_Event Event;
 
     while (quit == false)
     {
-        while (SDL_PollEvent(QuitEvent) != 0);
+        while (SDL_PollEvent(&Event) != 0)
         {
             //Time
-            /*float currentFrame = static_cast<float>(glfwGetTime());
+            //float currentFrame = static_cast<float>(glfwGetTime());
+            float currentFrame = static_cast<float>(SDL_GetTicks());
             deltaTime = currentFrame - lastFrame;
-            lastFrame = currentFrame;*/
+            lastFrame = currentFrame;
 
             //Input
+            ProcessUserInput(Event, quit);
             //ProcessUserInput(window); //Takes user input
 
             //Rendering
-            SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-            SDL_RenderClear(renderer);
+            //SDL_SetRenderDrawColor(renderer, 64, 0, 255, 255);
+            //SDL_RenderClear(renderer);
 
             //Rendering (old)
-            /*glClearColor(0.25f, 0.0f, 1.0f, 1.0f); //Colour to display on cleared window
+            glClearColor(0.25f, 0.0f, 1.0f, 1.0f); //Colour to display on cleared window
             glClear(GL_COLOR_BUFFER_BIT); //Clears the colour buffer
-            glClear(GL_DEPTH_BUFFER_BIT);*/ //Might need
+            glClear(GL_DEPTH_BUFFER_BIT); //Might need
 
             glEnable(GL_CULL_FACE); //Discards all back-facing triangles
 
@@ -201,12 +203,13 @@ int main(int argc, char* argv[])
             //glfwSwapBuffers(window); //Swaps the colour buffer
             //glfwPollEvents(); //Queries all GLFW events
 
-            SDL_RenderPresent(renderer);
+            //SDL_RenderPresent(renderer);
+            SDL_GL_SwapWindow(window);
 
-            if (QuitEvent->type == SDL_QUIT)
+            /*if (Event.type == SDL_QUIT)
             {
                 quit = true;
-            }
+            }*/
         }
     }
 
@@ -269,7 +272,42 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     cameraFront = normalize(direction);
 }
 
-void ProcessUserInput(GLFWwindow* WindowIn)
+void ProcessUserInput(SDL_Event& EventIn, bool& quitIn)
+{
+    //SDL_PollEvent(&EventIn);
+
+    //SDL_PollEvent()
+    //SDL_GetKeyName(EventIn->key.keysym.sym);
+
+    /*if (Event.type == SDL_QUIT)
+    {
+        quitIn = true;
+    }*/
+
+    const Uint8* keyStates = SDL_GetKeyboardState(NULL);
+
+    if (EventIn.type == SDL_KEYDOWN)
+    {
+        const float movementSpeed = 0.001f * deltaTime;
+
+        /*if (keyStates[SDL_SCANCODE_ESCAPE]) { quitIn = true; }
+        if (keyStates[SDL_SCANCODE_W])
+        {
+            cameraPosition += movementSpeed * cameraFront;
+        }
+        if (keyStates[SDL_SCANCODE_S]) { cameraPosition -= movementSpeed * cameraFront; }
+        if (keyStates[SDL_SCANCODE_A]) { cameraPosition -= normalize(cross(cameraFront, cameraUp)) * movementSpeed; }
+        if (keyStates[SDL_SCANCODE_D]) { cameraPosition += normalize(cross(cameraFront, cameraUp)) * movementSpeed; }*/
+
+        if (EventIn.key.keysym.sym == SDLK_ESCAPE) { quitIn = true; }
+        if (EventIn.key.keysym.sym == SDLK_w) { cameraPosition += movementSpeed * cameraFront; }
+        if (EventIn.key.keysym.sym == SDLK_s) { cameraPosition -= movementSpeed * cameraFront; }
+        if (EventIn.key.keysym.sym == SDLK_a) { cameraPosition -= normalize(cross(cameraFront, cameraUp)) * movementSpeed; }
+        if (EventIn.key.keysym.sym == SDLK_d) { cameraPosition += normalize(cross(cameraFront, cameraUp)) * movementSpeed; }
+    }
+}
+
+void ProcessUserInputGLFW(GLFWwindow* WindowIn)
 {
     //Closes window on 'exit' key press
     if (glfwGetKey(WindowIn, GLFW_KEY_ESCAPE) == GLFW_PRESS)
