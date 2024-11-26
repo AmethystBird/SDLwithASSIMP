@@ -92,6 +92,11 @@ int main(int argc, char* argv[])
         return -1;
     }
 
+    SDL_SetRelativeMouseMode(SDL_TRUE);
+    //SDL_ShowCursor(SDL_DISABLE);
+    //SDL_SetHint(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "0");
+    //SDL_EventState(SDL_MOUSEMOTION, SDL_ENABLE);
+
     SDL_GLContext context = SDL_GL_CreateContext(window);
     if (context == NULL)
     {
@@ -244,17 +249,22 @@ void ProcessMouseInput(SDL_Event& EventIn)
             cout << "y = " << EventIn.motion.y << endl;*/
 
             //Sets values for change in position since last frame to current frame
-            float xOffset = (float)EventIn.motion.x - cameraLastXPos;
+            //If using relative / mouse captured
+            float xOffset = (float)EventIn.motion.xrel;
+            float yOffset = (float)EventIn.motion.yrel * -1;
+
+            //If using absolute / mouse not captured
+            /*float xOffset = (float)EventIn.motion.x - cameraLastXPos;
             float yOffset = cameraLastYPos - (float)EventIn.motion.y;
 
             //Sets last positions to current positions for next frame
             cameraLastXPos = (float)EventIn.motion.x;
-            cameraLastYPos = (float)EventIn.motion.y;
+            cameraLastYPos = (float)EventIn.motion.y;*/
 
             //Moderates the change in position based on sensitivity value
-            const float sensitivity = 0.025f;
-            xOffset *= sensitivity;
-            yOffset *= sensitivity;
+            const float sensitivity = 0.0025f;
+            xOffset *= sensitivity * deltaTime;
+            yOffset *= sensitivity * deltaTime;
 
             //Adjusts yaw & pitch values against changes in positions
             cameraYaw += xOffset;
