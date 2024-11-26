@@ -177,7 +177,8 @@ int main(int argc, char* argv[])
             lastFrame = currentFrame;
 
             //Input
-            ProcessUserInput(Event, quit);
+            ProcessKeyInput(Event, quit);
+            ProcessMouseInput(Event);
             //ProcessUserInput(window); //Takes user input
 
             //Rendering
@@ -227,6 +228,58 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
+void ProcessMouseInput(SDL_Event& EventIn)
+{
+    if (EventIn.type == SDL_MOUSEMOTION)
+    {
+        if (mouseFirstEntry)
+        {
+            cameraLastXPos = EventIn.motion.x;
+            cameraLastYPos = EventIn.motion.y;
+            mouseFirstEntry = false;
+        }
+        else if ((float)EventIn.motion.x - cameraLastXPos != 0)
+        {
+            /*cout << "x = " << EventIn.motion.x << endl;
+            cout << "y = " << EventIn.motion.y << endl;*/
+
+            //Sets values for change in position since last frame to current frame
+            float xOffset = (float)EventIn.motion.x - cameraLastXPos;
+            float yOffset = cameraLastYPos - (float)EventIn.motion.y;
+
+            //Sets last positions to current positions for next frame
+            cameraLastXPos = (float)EventIn.motion.x;
+            cameraLastYPos = (float)EventIn.motion.y;
+
+            //Moderates the change in position based on sensitivity value
+            const float sensitivity = 0.025f;
+            xOffset *= sensitivity;
+            yOffset *= sensitivity;
+
+            //Adjusts yaw & pitch values against changes in positions
+            cameraYaw += xOffset;
+            cameraPitch += yOffset;
+
+            //Prevents turning up & down beyond 90 degrees to look backwards
+            if (cameraPitch > 89.0f)
+            {
+                cameraPitch = 89.0f;
+            }
+            else if (cameraPitch < -89.0f)
+            {
+                cameraPitch = -89.0f;
+            }
+
+            //Modification of direction vector based on mouse turning
+            vec3 direction;
+            direction.x = cos(radians(cameraYaw)) * cos(radians(cameraPitch));
+            direction.y = sin(radians(cameraPitch));
+            direction.z = sin(radians(cameraYaw)) * cos(radians(cameraPitch));
+            cameraFront = normalize(direction);
+        }
+    }
+}
+
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
     //Initially no last positions, so sets last positions to current positions
@@ -272,7 +325,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     cameraFront = normalize(direction);
 }
 
-void ProcessUserInput(SDL_Event& EventIn, bool& quitIn)
+void ProcessKeyInput(SDL_Event& EventIn, bool& quitIn)
 {
     //SDL_PollEvent(&EventIn);
 
